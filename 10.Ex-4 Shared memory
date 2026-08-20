@@ -1,0 +1,89 @@
+//producer
+
+#include <stdio.h>
+#include <sys/shm.h>
+
+int main() {
+    int r, c, i; // Declare i here
+    key_t key;
+    int shmid;
+    int *ptr, *mat1, *mat2;
+
+    printf("Enter rows and columns: ");
+    scanf("%d %d", &r, &c);
+
+    key = ftok("matrix_shm", 85);
+    shmid = shmget(key, (2 * r * c * sizeof(int)) + 100, 0666 | IPC_CREAT);
+    ptr = (int*) shmat(shmid, (void*)0, 0);
+
+    ptr[0] = r; ptr[1] = c; 
+    mat1 = ptr + 2;
+    mat2 = ptr + 2 + (r * c);
+
+    printf("Enter Matrix 1 elements:\n");
+    for(i = 0; i < r * c; i++) {
+        scanf("%d", &mat1[i]);
+    }
+
+    printf("Enter Matrix 2 elements:\n");
+    for(i = 0; i < r * c; i++) {
+        scanf("%d", &mat2[i]);
+    }
+
+    shmdt(ptr);
+    printf("Matrices saved to shared memory.\n");
+    return 0;
+}
+
+
+//consumer
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/ipc.h>
+#include <sys/shm.h>
+
+int main() {
+    int r, c, i, j; // Declare loop variables here
+    key_t key;
+    int shmid;
+    int *ptr, *mat1, *mat2;
+
+    // 1. Generate the same key
+    key = ftok("matrix_shm", 85);
+
+    // 2. Access the shared memory
+    shmid = shmget(key, 0, 0666);
+    if (shmid == -1) {
+        perror("shmget failed. Is producer running?");
+        return 1;
+    }
+
+    // 3. Attach to shared memory
+    ptr = (int*) shmat(shmid, (void*)0, 0);
+
+    // 4. Read dimensions stored by producer
+    r = ptr[0]; 
+    c = ptr[1];
+    
+    // 5. Set pointers to the matrices
+    mat1 = ptr + 2;
+    mat2 = ptr + 2 + (r * c);
+
+    printf("Consumer: Received matrices of size %dx%d\n", r, c);
+    printf("Resultant Matrix (Sum):\n");
+
+    // 6. Perform addition using the declared i and j
+    for (i = 0; i < r; i++) {
+        for (j = 0; j < c; j++) {
+            printf("%d\t", mat1[i * c + j] + mat2[i * c + j]);
+        }
+        printf("\n");
+    }
+
+    // 7. Detach and Cleanup
+    shmdt(ptr);
+    shmctl(shmid, IPC_RMID, NULL); 
+    
+    return 0;
+}
