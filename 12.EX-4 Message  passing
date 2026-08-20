@@ -1,0 +1,85 @@
+//producer
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/ipc.h>
+#include <sys/msg.h>
+#include <string.h>
+
+struct msg_buffer {
+    long msg_type;
+    char msg_text[1024];
+    int bytes_read;
+};
+
+int main() {
+    key_t key = ftok("copy_queue", 65);
+    int msgid = msgget(key, 0666 | IPC_CREAT);
+    struct msg_buffer message;
+    
+    FILE *source = fopen("input.txt", "rb");
+    if (source == NULL) {
+        perror("Producer: Error opening input.txt");
+        return 1;
+    }
+
+    message.msg_type = 1;
+    int data_size = sizeof(struct msg_buffer) - sizeof(long);
+
+    printf("Producer: Sending file content...\n");
+
+    while ((message.bytes_read = fread(message.msg_text, 1, 1024, source)) > 0) {
+        msgsnd(msgid, &message, data_size, 0);
+    }
+
+    // EOF Signal
+    message.bytes_read = 0;
+    msgsnd(msgid, &message, data_size, 0);
+
+    printf("Producer: Finished sending.\n");
+    fclose(source);
+    return 0;
+}
+
+
+//consumer
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/ipc.h>
+#include <sys/msg.h>
+
+struct msg_buffer {
+    long msg_type;
+    char msg_text[1024];
+    int bytes_read;
+};
+
+int main() {
+    key_t key = ftok("copy_queue", 65);
+    int msgid = msgget(key, 0666 | IPC_CREAT);
+    struct msg_buffer message;
+
+    FILE *dest = fopen("copied_file.txt", "wb");
+    if (dest == NULL) {
+        perror("Consumer: Error creating file");
+        return 1;
+    }
+
+    int data_size = sizeof(struct msg_buffer) - sizeof(long);
+    printf("Consumer: Waiting for data...\n");
+
+    while (1) {
+        if (msgrcv(msgid, &message, data_size, 1, 0) == -1) break;
+        if (message.bytes_read == 0) break; // EOF signal
+        fwrite(message.msg_text, 1, message.bytes_read, dest);
+    }
+
+    printf("Consumer: File copied successfully!\n");
+    fclose(dest);
+    msgctl(msgid, IPC_RMID, NULL); 
+    return 0;
+}
+
+
+
