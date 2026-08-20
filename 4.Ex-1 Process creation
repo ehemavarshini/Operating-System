@@ -1,0 +1,94 @@
+#include <stdio.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+
+int main()
+{
+   pid_t p2, p3, p4, p5, p6, p7;
+
+   p2 = fork();
+   if (p2 < 0) {
+      printf("P2 creation failed\n");
+   }
+   else if (p2 == 0) {
+      printf("\nP2\n");
+      printf("p2 Successfully created\n");
+      printf("PID=%d\n", getpid());
+      printf("PPID=%d\n", getppid());
+
+      p4 = fork();
+      if (p4 < 0) {
+         printf("P4 creation failed\n");
+      }
+      else if (p4 == 0) {
+         printf("\nP4\n");
+         printf("p4 Successfully created\n");
+         printf("PID=%d\n", getpid());
+         printf("PPID=%d\n", getppid());
+
+         p7 = fork();
+         if (p7 < 0) {
+            printf("P7 creation failed\n");
+         }
+         else if (p7 == 0) {
+            printf("\nP7\n");
+            printf("p7 Successfully created\n");
+            printf("PID=%d\n", getpid());
+            printf("PPID=%d\n", getppid());
+            return 0;
+         }
+         wait(NULL);
+         return 0;
+      }
+      wait(NULL);
+      return 0;
+   }
+   wait(NULL);
+
+   p3 = fork();
+   if (p3 < 0) {
+      printf("P3 creation failed\n");
+   }
+   else if (p3 == 0) {
+      printf("\nP3\n");
+      printf("p3 Successfully created\n");
+      printf("PID=%d\n", getpid());
+      printf("PPID=%d\n", getppid());
+
+      p5 = fork();
+      if (p5 < 0) {
+         printf("P5 creation failed\n");
+      }
+      else if (p5 == 0) {
+         printf("\nP5\n");
+         printf("p5 Successfully created\n");
+         printf("PID=%d\n", getpid());
+         printf("PPID=%d\n", getppid());
+         return 0;
+      }
+      wait(NULL);
+
+      p6 = fork();
+      if (p6 < 0) {
+         printf("P6 creation failed\n");
+      }
+      else if (p6 == 0) {
+         printf("\nP6\n");
+         printf("p6 Successfully created\n");
+         printf("PID=%d\n", getpid());
+         printf("PPID=%d\n", getppid());
+         return 0;
+      }
+      wait(NULL);
+      return 0;
+   }
+   wait(NULL);
+
+   printf("\nP1\n");
+   printf("p1 Successfully created\n");
+   printf("PID=%d\n", getpid());
+   printf("PPID=%d\n", getppid());
+
+   return 0;
+}
