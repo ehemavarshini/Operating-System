@@ -1,0 +1,50 @@
+#include<stdio.h>
+#include<unistd.h>
+#include<sys/wait.h>
+#include<stdlib.h>
+int main()
+{
+   pid_t p2,p3;
+   p2=fork();
+   if(p2<0)
+   {
+      printf("Not created");
+   }
+   else if(p2==0)
+   {
+      printf("\nP2:\n");
+      printf("P2 sucessfully craeted\n");
+      printf("PID=%d\n",getpid());
+      printf("PPID=%d\n",getppid());
+      p3=fork();
+	 if(p3<0)
+	    {
+	       printf("Not created");
+	    }
+
+	 else if (p3==0)
+	 {
+	    printf("\nP3:\n");
+	    printf("p3 sucessfully created\n");
+	    printf("PID=%d\n",getpid());
+	    printf("PPID=%d\n",getppid());
+	    exit(0);
+         }
+         else
+	 {
+	    wait(NULL);
+	    wait(NULL);
+	    exit(0);
+	 }
+      }
+   else
+   {
+      wait(NULL);
+      wait(NULL);
+      printf("\nP1:\n");
+      printf("P1 Sucessfully created\n");
+      printf("PID=%d\n",getpid());
+      printf("PPID=%d\n",getppid());
+   }
+   return 0;
+}
