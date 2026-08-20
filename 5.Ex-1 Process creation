@@ -1,0 +1,96 @@
+#include<stdio.h>
+#include<unistd.h>
+#include<sys/wait.h>
+#include<stdlib.h>
+
+int main()
+{
+   pid_t p2, p3, p4, p5, p6, p7;
+
+   // P1 forks P2 and waits immediately
+   p2 = fork();
+   if (p2 < 0) {
+      printf("P2 Not created\n");
+   }
+   else if (p2 == 0) {
+      printf("\nP2\n");
+      printf("PID=%d\n", getpid());
+      printf("PPID=%d\n", getppid());
+      return 0; 
+   }
+   wait(NULL); // Wait for P2 to finish before doing anything else
+
+   // P1 forks P3 and waits immediately
+   p3 = fork();
+   if (p3 < 0) {
+      printf("P3 Not created\n");
+   }
+   else if (p3 == 0) {
+      printf("\nP3\n");
+      printf("PID=%d\n", getpid());
+      printf("PPID=%d\n", getppid());
+
+      // P3 forks P6 and waits immediately
+      p6 = fork();
+      if (p6 < 0) {
+         printf("P6 Not created\n");
+      }
+      else if (p6 == 0) {
+         printf("\nP6\n");
+         printf("PID=%d\n", getpid());
+         printf("PPID=%d\n", getppid());
+         return 0;
+      }
+      wait(NULL); // Wait for P6 to finish printing
+
+      // P3 forks P7 and waits immediately
+      p7 = fork();
+      if (p7 < 0) {
+         printf("P7 Not created\n");
+      }
+      else if (p7 == 0) {
+         printf("\nP7\n");
+         printf("PID=%d\n", getpid());
+         printf("PPID=%d\n", getppid());
+         return 0;
+      }
+      wait(NULL); // Wait for P7 to finish printing
+
+      printf("\nP3 children finished\n");
+      return 0; 
+   }
+   wait(NULL); // Wait for P3 (and its sub-tree) to completely finish
+
+   // P1 forks P4 and waits immediately
+   p4 = fork();
+   if (p4 < 0) {
+      printf("P4 Not created\n");
+   }
+   else if (p4 == 0) {
+      printf("\nP4\n");
+      printf("PID=%d\n", getpid());
+      printf("PPID=%d\n", getppid());
+      return 0; 
+   }
+   wait(NULL); // Wait for P4 to finish printing
+
+   // P1 forks P5 and waits immediately
+   p5 = fork();
+   if (p5 < 0) {
+      printf("P5 Not created\n");
+   }
+   else if (p5 == 0) {
+      printf("\nP5\n");
+      printf("PID=%d\n", getpid());
+      printf("PPID=%d\n", getppid());
+      return 0; 
+   }
+   wait(NULL); // Wait for P5 to finish printing
+
+   // Finally, P1 prints its own info safely
+   printf("\nP1\n");
+   printf("PID=%d\n", getpid());
+   printf("PPID=%d\n", getppid());
+   
+   return 0;
+}
