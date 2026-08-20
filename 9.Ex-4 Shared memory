@@ -1,0 +1,47 @@
+//producer
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/shm.h>
+#include <string.h>
+
+int main() {
+    key_t key = ftok("shmfile", 65);
+    int shmid = shmget(key, 1024, 0666 | IPC_CREAT);
+    char *str = (char*) shmat(shmid, (void*)0, 0);
+
+    printf("Producer: Enter a string: ");
+    fgets(str, 1024, stdin);
+    str[strcspn(str, "\n")] = '\0'; 
+
+    printf("Data written to shared memory.\n");
+    shmdt(str);
+    return 0;
+}
+
+//consumer
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/shm.h>
+#include <ctype.h>
+
+int main() {
+    key_t key = ftok("shmfile", 65);
+    int shmid = shmget(key, 1024, 0666);
+    char *str = (char*) shmat(shmid, (void*)0, 0);
+
+    printf("Consumer: Vowels found: ");
+    
+    int i;  // Declare i outside the loop
+    for (i = 0; str[i] != '\0'; i++) {
+        char ch = tolower(str[i]);
+        if (ch == 'a' || ch == 'e' || ch == 'i' || ch == 'o' || ch == 'u')
+            printf("%c ", str[i]);
+    }
+    printf("\n");
+
+    shmdt(str);
+    shmctl(shmid, IPC_RMID, NULL); 
+    return 0;
+}
