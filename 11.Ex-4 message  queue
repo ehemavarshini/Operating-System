@@ -1,0 +1,41 @@
+#include <stdio.h>
+
+#include <stdlib.h>
+#include <sys/ipc.h>
+#include <sys/msg.h>
+#include <string.h>
+
+// Structure for message queue
+struct msg_buffer {
+    long msg_type;
+    char msg_text[512];
+};
+
+int main() {
+    key_t key;
+    int msgid;
+    struct msg_buffer message;
+
+    // 1. Generate unique key (must match consumer)
+    key = ftok("word_queue", 65);
+
+    // 2. Create message queue
+    msgid = msgget(key, 0666 | IPC_CREAT);
+
+    message.msg_type = 1;
+
+    printf("Producer: Enter a sentence: ");
+    fgets(message.msg_text, sizeof(message.msg_text), stdin);
+
+    // Remove trailing newline character
+    message.msg_text[strcspn(message.msg_text, "\n")] = '\0';
+
+    // 3. Send message
+    if (msgsnd(msgid, &message, sizeof(message.msg_text), 0) == -1) {
+        perror("msgsnd failed");
+    } else {
+        printf("Producer: Message sent successfully.\n");
+    }
+
+    return 0;
+}
