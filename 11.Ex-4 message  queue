@@ -1,3 +1,5 @@
+//poducer
+
 #include <stdio.h>
 
 #include <stdlib.h>
@@ -36,6 +38,59 @@ int main() {
     } else {
         printf("Producer: Message sent successfully.\n");
     }
+
+    return 0;
+}
+
+//consumer
+
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/ipc.h>
+#include <sys/msg.h>
+#include <string.h>
+#include <ctype.h>
+
+struct msg_buffer {
+    long msg_type;
+    char msg_text[512];
+};
+
+int main() {
+    key_t key;
+    int msgid;
+    struct msg_buffer message;
+
+    // 1. Generate same unique key
+    key = ftok("word_queue", 65);
+
+    // 2. Access the message queue
+    msgid = msgget(key, 0666 | IPC_CREAT);
+
+    printf("Consumer: Waiting for message...\n");
+
+    // 3. Receive message
+    msgrcv(msgid, &message, sizeof(message.msg_text), 1, 0);
+
+    printf("Consumer Received: \"%s\"\n", message.msg_text);
+
+    // 4. Word counting logic
+    int words = 0, i = 0, in_word = 0;
+    while (message.msg_text[i] != '\0') {
+        if (isspace(message.msg_text[i])) {
+            in_word = 0;
+        } else if (in_word == 0) {
+            in_word = 1;
+            words++;
+        }
+        i++;
+    }
+
+    printf("Consumer: Word Count = %d\n", words);
+
+    // 5. Delete the message queue
+    msgctl(msgid, IPC_RMID, NULL);
 
     return 0;
 }
