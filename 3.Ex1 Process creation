@@ -1,0 +1,63 @@
+#include <stdio.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+
+int main()
+{
+   int n;
+   int i;
+   printf("Enter the count of numbers:");
+   scanf("%d",&n);
+   pid_t p2,p3;
+   p2= fork();
+   if (p2 < 0) {
+      printf("P2 creation failed\n");
+   }
+   else if (p2 == 0) {
+     // int i,n;
+      int even_sum=0;
+      printf("\nP2\n");
+      printf("p2 Successfully created\n");
+      printf("PID=%d\n", getpid());
+      printf("PPID=%d\n", getppid());
+      for( i = 0;i<=n;i++)
+      {
+	 if(i%2==0)
+	 {
+	    even_sum+=i;
+	 }
+      }
+      printf("Sum of even numbers upto %d=%d\n",n,even_sum);
+      return 0; 
+   }
+   wait(NULL);
+   p3 = fork();
+   if (p3 < 0) {
+      printf("P3 creation failed\n");
+   }
+   else if (p3 == 0) {
+      //int i,n;
+      int odd_sum=0;
+      printf("\nP3\n");
+      printf("p3 Successfully created\n");
+      printf("PID=%d\n", getpid());
+      printf("PPID=%d\n", getppid());
+      for( i=1;i<=n;i++)
+      {
+	 if(i%2 != 0)
+	{
+	    odd_sum+=i;
+	 }
+      }
+      printf("Sum of odd numbers upto %d=%d\n",n,odd_sum);
+      return 0; 
+   }
+   wait(NULL);
+   printf("\nP1\n");
+   printf("p1 Successfully created\n");
+   printf("PID=%d\n", getpid());
+   printf("PPID=%d\n", getppid());
+
+   return 0;
+}
